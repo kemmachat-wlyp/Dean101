@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { revalidateTag } from 'next/cache'
 import { createSale, getItemById } from '../../../lib/inventory-data'
 
 async function getUser() {
@@ -57,6 +58,9 @@ export async function POST(req: Request) {
       netProfit: parseFloat(body.netProfit) || 0,
       saleDate: new Date(body.saleDate).toISOString()
     })
+
+    revalidateTag('items')
+    revalidateTag('dashboard')
 
     return NextResponse.json(sale)
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { revalidateTag } from 'next/cache'
 import { createPhoto, listPhotosByItemId } from '../../../lib/inventory-data'
 import { uploadPhotoToStorage } from '../../../lib/photo-storage'
 
@@ -46,6 +47,8 @@ export async function POST(request: Request) {
     const itemPhotos = await listPhotosByItemId(numericItemId)
 
     const photo = await createPhoto(numericItemId, uploadedPhoto.publicUrl, itemPhotos.length === 0)
+
+    revalidateTag('items')
 
     return NextResponse.json({ 
       path: uploadedPhoto.publicUrl,

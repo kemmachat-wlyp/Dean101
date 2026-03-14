@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "./supabase-admin";
+import { unstable_cache } from "next/cache";
 
 export interface UserRecord {
   id: number;
@@ -98,7 +99,7 @@ export async function getUserByUsername(username: string) {
 
 export async function getLastItem() {
   const data = assertNoError(
-    await supabaseAdmin.from("Item").select("*").order("id", { ascending: false }).limit(1).maybeSingle(),
+    await supabaseAdmin.from("Item").select("id, itemId").order("id", { ascending: false }).limit(1).maybeSingle(),
     "Failed to fetch last item"
   );
 
@@ -106,6 +107,11 @@ export async function getLastItem() {
 }
 
 export async function listItems(filters: ItemFilters = {}) {
+  return listItemsCached(filters);
+}
+
+const listItemsCached = unstable_cache(
+  async (filters: ItemFilters = {}) => {
   let query = supabaseAdmin.from("Item").select("*").order("createdAt", { ascending: false });
 
   if (filters.search) {
@@ -126,9 +132,17 @@ export async function listItems(filters: ItemFilters = {}) {
 
   const items = assertNoError(await query, "Failed to fetch items") as ItemRecord[];
   return attachRelations(items);
-}
+  },
+  ["items-list"],
+  { tags: ["items"], revalidate: 30 }
+);
 
 export async function getItemById(itemId: number) {
+  return getItemByIdCached(itemId);
+}
+
+const getItemByIdCached = unstable_cache(
+  async (itemId: number) => {
   const item = assertNoError(
     await supabaseAdmin.from("Item").select("*").eq("id", itemId).maybeSingle(),
     "Failed to fetch item"
@@ -150,7 +164,10 @@ export async function getItemById(itemId: number) {
     photos,
     sale,
   } satisfies ItemWithRelations;
-}
+  },
+  ["item-by-id"],
+  { tags: ["items"], revalidate: 30 }
+);
 
 export async function createItem(input: {
   itemId: string;
@@ -407,6 +424,10 @@ export async function getMeasurementByItemId(itemId: number) {
 }
 
 export async function listCategoriesWithCounts() {
+  return listCategoriesWithCountsCached();
+}
+
+const listCategoriesWithCountsCached = unstable_cache(async () => {
   const rows = assertNoError(await supabaseAdmin.from("Item").select("category"), "Failed to fetch categories") as Pick<
     ItemRecord,
     "category"
@@ -421,9 +442,13 @@ export async function listCategoriesWithCounts() {
   return [...counts.entries()]
     .map(([category, count]) => ({ category, _count: count }))
     .sort((left, right) => left.category.localeCompare(right.category));
-}
+}, ["item-categories"], { tags: ["items"], revalidate: 60 });
 
 export async function listSizeTagsWithCounts() {
+  return listSizeTagsWithCountsCached();
+}
+
+const listSizeTagsWithCountsCached = unstable_cache(async () => {
   const rows = assertNoError(await supabaseAdmin.from("Item").select("sizeTag"), "Failed to fetch sizes") as Pick<
     ItemRecord,
     "sizeTag"
@@ -438,9 +463,13 @@ export async function listSizeTagsWithCounts() {
   return [...counts.entries()]
     .map(([sizeTag, count]) => ({ sizeTag, _count: count }))
     .sort((left, right) => left.sizeTag.localeCompare(right.sizeTag));
-}
+}, ["item-size-tags"], { tags: ["items"], revalidate: 60 });
 
 export async function countItems() {
+  return countItemsCached();
+}
+
+const countItemsCached = unstable_cache(async () => {
   const result = await supabaseAdmin.from("Item").select("id", { count: "exact", head: true });
 
   if (result.error) {
@@ -448,9 +477,13 @@ export async function countItems() {
   }
 
   return result.count ?? 0;
-}
+}, ["count-items"], { tags: ["dashboard", "items"], revalidate: 30 });
 
 export async function countAvailableItems() {
+  return countAvailableItemsCached();
+}
+
+const countAvailableItemsCached = unstable_cache(async () => {
   const result = await supabaseAdmin
     .from("Item")
     .select("id", { count: "exact", head: true })
@@ -461,9 +494,13 @@ export async function countAvailableItems() {
   }
 
   return result.count ?? 0;
-}
+}, ["count-available-items"], { tags: ["dashboard", "items"], revalidate: 30 });
 
 export async function countSales() {
+  return countSalesCached();
+}
+
+const countSalesCached = unstable_cache(async () => {
   const result = await supabaseAdmin.from("Sale").select("id", { count: "exact", head: true });
 
   if (result.error) {
@@ -471,30 +508,75 @@ export async function countSales() {
   }
 
   return result.count ?? 0;
-}
+}, ["count-sales"], { tags: ["dashboard"], revalidate: 30 });
 
 export async function listSalesSince(isoDate: string) {
+  return listSalesSinceCached(isoDate);
+}
+
+const listSalesSinceCached = unstable_cache(async (isoDate: string) => {
   const data = assertNoError(
     await supabaseAdmin.from("Sale").select("*").gte("saleDate", isoDate),
     "Failed to fetch sales"
   );
 
   return data as SaleRecord[];
-}
+}, ["sales-since"], { tags: ["dashboard"], revalidate: 30 });
 
 export async function listItemsByStatuses(statuses: string[]) {
+  return listItemsByStatusesCached(statuses);
+}
+
+const listItemsByStatusesCached = unstable_cache(async (statuses: string[]) => {
   const data = assertNoError(
     await supabaseAdmin.from("Item").select("*").in("status", statuses),
     "Failed to fetch items by status"
   );
 
   return data as ItemRecord[];
-}
+}, ["items-by-statuses"], { tags: ["dashboard", "items"], revalidate: 30 });
 
 export async function listAllItems() {
+  return listAllItemsCached();
+}
+
+const listAllItemsCached = unstable_cache(async () => {
   const data = assertNoError(await supabaseAdmin.from("Item").select("*"), "Failed to fetch all items");
   return data as ItemRecord[];
+}, ["all-items"], { tags: ["dashboard", "items"], revalidate: 30 });
+
+export async function getDashboardSnapshot() {
+  return getDashboardSnapshotCached();
 }
+
+const getDashboardSnapshotCached = unstable_cache(async () => {
+  const currentDate = new Date();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString();
+
+  const [items, available, sold, sales, inStockItems, allItems] = await Promise.all([
+    countItems(),
+    countAvailableItems(),
+    countSales(),
+    listSalesSince(firstDayOfMonth),
+    listItemsByStatuses(["InStock", "Listed", "Reserved"]),
+    listAllItems(),
+  ]);
+
+  const revenue = sales.reduce((total, sale) => total + sale.sellPrice, 0);
+  const profit = sales.reduce((total, sale) => total + sale.netProfit, 0);
+  const inventoryValue = inStockItems.reduce((total, item) => total + item.cost, 0);
+  const totalCost = allItems.reduce((total, item) => total + item.cost, 0);
+
+  return {
+    items,
+    available,
+    sold,
+    revenue,
+    profit,
+    inventoryValue,
+    totalCost,
+  };
+}, ["dashboard-snapshot"], { tags: ["dashboard", "items"], revalidate: 30 });
 
 async function attachRelations(items: ItemRecord[]) {
   if (items.length === 0) {

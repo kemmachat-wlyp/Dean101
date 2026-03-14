@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { revalidateTag } from 'next/cache'
 import { createItem, getLastItem, listItems } from '../../../lib/inventory-data'
 
 async function getUser() {
@@ -56,6 +57,9 @@ export async function POST(req: Request) {
         pitToPit: body.pitToPit ? parseFloat(body.pitToPit) : null,
         length: body.length ? parseFloat(body.length) : null
     })
+
+    revalidateTag('items')
+    revalidateTag('dashboard')
 
     return NextResponse.json(item)
   } catch (error) {

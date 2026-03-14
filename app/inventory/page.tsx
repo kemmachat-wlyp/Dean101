@@ -27,9 +27,11 @@ export default async function Inventory({
   const sizeTag = typeof searchParams.sizeTag === 'string' ? searchParams.sizeTag : ''
 
   // Build where clause
-  const items = await listItems({ search, category, status, sizeTag })
-  const categories = await listCategoriesWithCounts()
-  const sizeTags = await listSizeTagsWithCounts()
+  const [items, categories, sizeTags] = await Promise.all([
+    listItems({ search, category, status, sizeTag }),
+    listCategoriesWithCounts(),
+    listSizeTagsWithCounts(),
+  ])
 
   const statuses = [
     { value: 'Draft', label: 'Draft' },

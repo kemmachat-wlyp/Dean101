@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { countAvailableItems, countItems, countSales, listAllItems, listItemsByStatuses, listSalesSince } from '../../lib/inventory-data'
+import { getDashboardSnapshot } from '../../lib/inventory-data'
 
 async function getUser() {
   const cookieStore = cookies()
@@ -15,27 +15,7 @@ export default async function Dashboard() {
     redirect('/login')
   }
 
-  const items = await countItems()
-  const available = await countAvailableItems()
-  const sold = await countSales()
-
-  // Get current month sales
-  const currentDate = new Date()
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-  
-  const sales = await listSalesSince(firstDayOfMonth.toISOString())
-
-  const revenue = sales.reduce((a, b) => a + b.sellPrice, 0)
-  const profit = sales.reduce((a, b) => a + b.netProfit, 0)
-
-  // Calculate total inventory value
-  const inStockItems = await listItemsByStatuses(["InStock", "Listed", "Reserved"])
-
-  const inventoryValue = inStockItems.reduce((a, b) => a + b.cost, 0)
-
-  // Calculate total cost of all items (including sold items)
-  const allItems = await listAllItems()
-  const totalCost = allItems.reduce((a, b) => a + b.cost, 0)
+  const { items, available, sold, revenue, profit, inventoryValue, totalCost } = await getDashboardSnapshot()
 
   return (
     <div className="space-y-6">

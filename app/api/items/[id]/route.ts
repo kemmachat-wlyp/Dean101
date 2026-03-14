@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { revalidateTag } from 'next/cache'
 import { unlink } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
@@ -106,6 +107,9 @@ export async function PUT(
         length: body.length ? parseFloat(body.length) : null
     })
 
+    revalidateTag('items')
+    revalidateTag('dashboard')
+
     return NextResponse.json(item)
   } catch (error) {
     console.error('Error updating item:', error)
@@ -158,6 +162,9 @@ export async function DELETE(
     }
 
     await deleteItem(itemId)
+
+    revalidateTag('items')
+    revalidateTag('dashboard')
 
     return NextResponse.json({ success: true })
   } catch (error) {

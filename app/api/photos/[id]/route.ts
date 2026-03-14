@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { revalidateTag } from 'next/cache'
 import { unlink } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
@@ -75,6 +76,8 @@ export async function DELETE(
       }
     }
 
+    revalidateTag('items')
+
     return NextResponse.json({ success: true, newCoverPhotoId })
   } catch (error) {
     console.error('Error deleting photo:', error)
@@ -119,6 +122,8 @@ export async function PUT(
     }
 
     const updatedPhoto = await setItemCoverPhoto(photoId, photo.itemId)
+
+    revalidateTag('items')
 
     return NextResponse.json(updatedPhoto)
   } catch (error) {
