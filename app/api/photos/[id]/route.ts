@@ -4,6 +4,7 @@ import { unlink } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
 import { deletePhoto, getPhotoById, listPhotosByItemId, setItemCoverPhoto } from '../../../../lib/inventory-data'
+import { deletePhotoFromStorage } from '../../../../lib/photo-storage'
 
 async function getUser() {
   const cookieStore = cookies()
@@ -44,13 +45,20 @@ export async function DELETE(
       )
     }
 
-    // Delete file from filesystem
-    const fullPath = path.join(process.cwd(), 'public', photo.filePath.replace(/^\/+/, ''))
-    if (existsSync(fullPath)) {
+    if (photo.filePath.startsWith('http')) {
       try {
-        await unlink(fullPath)
-      } catch (fileError) {
-        console.warn('Could not delete photo file:', fullPath, fileError)
+        await deletePhotoFromStorage(photo.filePath)
+      } catch (storageError) {
+        console.warn('Could not delete photo from storage:', photo.filePath, storageError)
+      }
+    } else {
+      const fullPath = path.join(process.cwd(), 'public', photo.filePath.replace(/^\/+/, ''))
+      if (existsSync(fullPath)) {
+        try {
+          await unlink(fullPath)
+        } catch (fileError) {
+          console.warn('Could not delete photo file:', fullPath, fileError)
+        }
       }
     }
 

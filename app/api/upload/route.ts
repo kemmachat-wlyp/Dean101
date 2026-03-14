@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
 import { createPhoto, listPhotosByItemId } from '../../../lib/inventory-data'
+import { uploadPhotoToStorage } from '../../../lib/photo-storage'
 
 async function getUser() {
   const cookieStore = cookies()
@@ -33,35 +31,24 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'items', itemId)
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
     // Convert File to Buffer
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Generate unique filename
-    const fileExtension = file.name.split('.').pop()
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExtension}`
-    const filepath = path.join(uploadDir, filename)
-
-    // Save file
-    await writeFile(filepath, new Uint8Array(buffer))
-
-    // Return relative path for web access
-    const relativePath = `/uploads/items/${itemId}/${filename}`
-
     // Check if this is the first photo for this item
     const numericItemId = parseInt(itemId)
+    const uploadedPhoto = await uploadPhotoToStorage({
+      itemId: numericItemId,
+      originalName: file.name,
+      contentType: file.type,
+      buffer,
+    })
     const itemPhotos = await listPhotosByItemId(numericItemId)
 
-    const photo = await createPhoto(numericItemId, relativePath, itemPhotos.length === 0)
+    const photo = await createPhoto(numericItemId, uploadedPhoto.publicUrl, itemPhotos.length === 0)
 
     return NextResponse.json({ 
-      path: relativePath,
+      path: uploadedPhoto.publicUrl,
       photoId: photo.id,
       isCover: photo.isCover 
     })
