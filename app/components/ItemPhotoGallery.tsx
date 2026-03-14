@@ -24,7 +24,7 @@ export default function ItemPhotoGallery({ itemTitle, photos }: ItemPhotoGallery
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
         {photos.map((photo, index) => (
           <button
             key={photo.id}
@@ -35,7 +35,7 @@ export default function ItemPhotoGallery({ itemTitle, photos }: ItemPhotoGallery
             <img
               src={photo.filePath}
               alt={`${itemTitle} photo ${index + 1}`}
-              className="h-48 w-full rounded-xl object-cover transition duration-200 hover:scale-[1.02]"
+              className="h-56 w-full rounded-xl object-cover transition duration-200 hover:scale-[1.02] sm:h-48"
             />
             {photo.isCover && (
               <div className="absolute left-2 top-2 bg-blue-500 px-2 py-1 text-xs text-white rounded">

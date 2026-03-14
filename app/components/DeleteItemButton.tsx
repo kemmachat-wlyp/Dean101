@@ -50,7 +50,7 @@ export default function DeleteItemButton({
   }
 
   return (
-    <div className="inline-flex flex-col items-end gap-2">
+    <div className="flex w-full flex-col items-stretch gap-2 sm:inline-flex sm:w-auto sm:items-end">
       <button
         type="button"
         onClick={handleDelete}

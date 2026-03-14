@@ -43,7 +43,7 @@ export default async function ItemDetail({
               Review details, swap cover photos, update pricing, and keep this item ready for sale.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="mobile-action-row">
           <Link 
             href={`/inventory/${item.id}/photos`} 
             className="btn btn-secondary"
@@ -205,7 +205,7 @@ export default async function ItemDetail({
         <div className="panel p-6">
           <Link 
             href={`/sales/new?itemId=${item.id}`} 
-            className="btn btn-success"
+            className="btn btn-success w-full sm:w-auto"
           >
             Record Sale for This Item
           </Link>

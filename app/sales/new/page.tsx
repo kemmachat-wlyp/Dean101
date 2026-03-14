@@ -115,11 +115,11 @@ export default function RecordSale() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mobile-page-header mb-6">
         <h1 className="text-3xl font-bold">Record Sale</h1>
         <button
           onClick={() => router.back()}
-          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          className="btn btn-secondary"
         >
           Back
         </button>
@@ -131,7 +131,7 @@ export default function RecordSale() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
+      <form onSubmit={handleSubmit} className="form-shell">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Item Selection */}
           <div className="md:col-span-2">
@@ -160,7 +160,7 @@ export default function RecordSale() {
             {selectedItem && (
               <div className="bg-gray-50 p-4 rounded-md mb-4">
                 <h3 className="font-medium">Selected Item Details</h3>
-                <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                <div className="mt-2 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                   <div><span className="font-medium">ID:</span> {selectedItem.itemId}</div>
                   <div><span className="font-medium">Title:</span> {selectedItem.title}</div>
                   <div><span className="font-medium">Category:</span> {selectedItem.category}</div>
@@ -253,18 +253,18 @@ export default function RecordSale() {
           </div>
         </div>
         
-        <div className="flex justify-end space-x-3 mt-6">
+        <div className="mobile-form-actions">
           <button
             type="button"
             onClick={() => router.back()}
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            className="btn btn-secondary"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={submitting || !selectedItem}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+            className="btn btn-success disabled:opacity-50"
           >
             {submitting ? 'Recording...' : 'Record Sale'}
           </button>

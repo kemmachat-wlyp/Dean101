@@ -151,18 +151,18 @@ export default function ItemPhotos({ params }: { params: { id: string } }) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mobile-page-header mb-6">
         <h1 className="text-3xl font-bold">Manage Photos</h1>
-        <div className="space-x-2">
+        <div className="mobile-action-row">
           <button
             onClick={() => router.push(`/inventory/${params.id}`)}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="btn btn-primary"
           >
             Back to Item
           </button>
           <button
             onClick={() => router.push('/inventory')}
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            className="btn btn-secondary"
           >
             Back to Inventory
           </button>
@@ -175,9 +175,9 @@ export default function ItemPhotos({ params }: { params: { id: string } }) {
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-lg shadow mb-6">
+      <div className="form-shell mb-6">
         <h2 className="text-xl font-bold mb-4">Upload New Photo</h2>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:space-x-4">
           <input
             type="file"
             ref={fileInputRef}
@@ -197,7 +197,7 @@ export default function ItemPhotos({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow">
+      <div className="form-shell">
         <h2 className="text-xl font-bold mb-4">Existing Photos ({photos.length})</h2>
         
         {loading ? (

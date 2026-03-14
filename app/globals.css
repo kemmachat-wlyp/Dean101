@@ -85,7 +85,7 @@ textarea {
   }
 
   .app-container {
-    @apply mx-auto w-full max-w-7xl px-4 py-8 md:px-6;
+    @apply mx-auto w-full max-w-7xl px-4 py-5 md:px-6 md:py-8;
   }
 
   .glass-nav {
@@ -215,6 +215,46 @@ textarea {
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
   }
+
+  .table-scroll {
+    @apply overflow-x-auto overscroll-x-contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-page-header {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .mobile-action-row {
+    @apply flex flex-col gap-2 sm:flex-row sm:flex-wrap;
+  }
+
+  .mobile-action-row > * {
+    @apply w-full sm:w-auto;
+  }
+
+  .form-shell {
+    @apply panel p-4 sm:p-6;
+  }
+
+  .mobile-form-actions {
+    @apply mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end;
+  }
+
+  .mobile-form-actions > * {
+    @apply w-full sm:w-auto;
+  }
+
+  .mobile-card-list {
+    @apply space-y-4 md:hidden;
+  }
+
+  .mobile-card {
+    @apply rounded-2xl p-4;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-soft);
+  }
 }
 
 .text-theme,
@@ -276,4 +316,11 @@ table thead,
 
 tbody tr:hover {
   background: color-mix(in srgb, var(--surface) 60%, var(--primary) 10%);
+}
+
+@media (max-width: 767px) {
+  .page-title {
+    font-size: 1.9rem;
+    line-height: 1.1;
+  }
 }

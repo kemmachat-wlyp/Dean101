@@ -42,10 +42,10 @@ export default async function Inventory({
   return (
     <div className="space-y-6">
       <div className="hero-panel p-6 md:p-8">
-        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="mobile-page-header">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:space-x-4">
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-            ← Back to Dashboard
+              ← Back to Dashboard
             </Link>
             <div>
               <h1 className="page-title">Inventory</h1>
@@ -124,7 +124,7 @@ export default async function Inventory({
             </select>
           </div>
           
-          <div className="md:col-span-4 flex justify-end space-x-2">
+          <div className="mobile-action-row md:col-span-4 md:justify-end">
             <button
               type="submit"
               className="btn btn-primary"
@@ -141,8 +141,75 @@ export default async function Inventory({
         </form>
       </div>
 
+      <div className="mobile-card-list">
+        {items.map((item) => {
+          const coverPhoto = item.photos.find((photo) => photo.isCover) || item.photos[0]
+
+          return (
+            <div key={item.id} className="mobile-card">
+              <div className="flex items-start gap-3">
+                {coverPhoto ? (
+                  <img
+                    src={coverPhoto.filePath}
+                    alt={item.title}
+                    className="h-16 w-16 rounded-xl object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gray-200 text-xs text-gray-500">
+                    No Image
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-gray-900">{item.itemId}</div>
+                  <div className="truncate text-sm text-gray-500">{item.title}</div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span className="badge">{item.category}</span>
+                    <span className="badge">Size {item.sizeTag}</span>
+                    <span className="badge">{item.status}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <div className="text-gray-500">Cost</div>
+                  <div className="font-medium">${item.cost.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500">Sell Price</div>
+                  <div className="font-medium">{item.sale ? `$${item.sale.sellPrice.toFixed(2)}` : '-'}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500">Net Profit</div>
+                  <div className="font-medium">{item.sale ? `$${item.sale.netProfit.toFixed(2)}` : '-'}</div>
+                </div>
+              </div>
+              <div className="mobile-action-row mt-4">
+                <Link href={`/inventory/${item.id}`} className="btn btn-secondary">
+                  View
+                </Link>
+                <Link href={`/inventory/${item.id}/edit`} className="btn btn-primary">
+                  Edit
+                </Link>
+                <DeleteItemButton
+                  itemId={item.id}
+                  hasSale={Boolean(item.sale)}
+                  className="btn btn-danger"
+                />
+              </div>
+            </div>
+          )
+        })}
+
+        {items.length === 0 && (
+          <div className="mobile-card text-center">
+            <p className="text-gray-500">No items found</p>
+          </div>
+        )}
+      </div>
+
       {/* Items Table */}
-      <div className="table-shell">
+      <div className="table-shell hidden md:block">
+        <div className="table-scroll">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -218,6 +285,7 @@ export default async function Inventory({
             })}
           </tbody>
         </table>
+        </div>
         
         {items.length === 0 && (
           <div className="text-center py-12">

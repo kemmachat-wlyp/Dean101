@@ -61,7 +61,7 @@ export default function PhotoLightbox({
               event.stopPropagation()
               onPrev()
             }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 btn btn-secondary"
+            className="absolute bottom-4 left-4 btn btn-secondary sm:top-1/2 sm:-translate-y-1/2"
           >
             Prev
           </button>
@@ -71,7 +71,7 @@ export default function PhotoLightbox({
               event.stopPropagation()
               onNext()
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 btn btn-secondary"
+            className="absolute bottom-4 right-4 btn btn-secondary sm:top-1/2 sm:-translate-y-1/2"
           >
             Next
           </button>

@@ -110,12 +110,12 @@ export default function EditItem({ params }: { params: { id: string } }) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mobile-page-header mb-6">
         <h1 className="text-3xl font-bold">Edit Item</h1>
-        <div className="flex items-start gap-2">
+        <div className="mobile-action-row">
           <button
             onClick={() => router.back()}
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            className="btn btn-secondary"
           >
             Back
           </button>
@@ -129,7 +129,7 @@ export default function EditItem({ params }: { params: { id: string } }) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
+      <form onSubmit={handleSubmit} className="form-shell">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Basic Information */}
           <div>
@@ -345,18 +345,18 @@ export default function EditItem({ params }: { params: { id: string } }) {
           </div>
         </div>
         
-        <div className="flex justify-end space-x-3 mt-6">
+        <div className="mobile-form-actions">
           <button
             type="button"
             onClick={() => router.back()}
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            className="btn btn-secondary"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={submitting}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+            className="btn btn-primary disabled:opacity-50"
           >
             {submitting ? 'Updating...' : 'Update Item'}
           </button>
