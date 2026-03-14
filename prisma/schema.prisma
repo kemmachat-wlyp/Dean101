@@ -1,0 +1,70 @@
+
+generator client {
+ provider = "prisma-client-js"
+}
+
+datasource db {
+ provider = "postgresql"
+ url      = env("DATABASE_URL")
+ directUrl = env("DIRECT_URL")
+}
+
+model User {
+ id Int @id @default(autoincrement())
+ username String @unique
+ passwordHash String
+ createdAt DateTime @default(now())
+}
+
+model Item {
+ id Int @id @default(autoincrement())
+ itemId String @unique
+ title String
+ category String
+ brand String?
+ sizeTag String
+ condition String
+ yearEstimate String?
+ color String?
+ country String?
+ notes String?
+ cost Float
+ targetPrice Float?
+ status String
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ measurement Measurement?
+ photos Photo[]
+ sale Sale?
+}
+
+model Measurement {
+ id Int @id @default(autoincrement())
+ itemId Int @unique
+ pitToPit Float?
+ length Float?
+ item Item @relation(fields:[itemId], references:[id])
+}
+
+model Photo {
+ id Int @id @default(autoincrement())
+ itemId Int
+ filePath String
+ isCover Boolean @default(false)
+ createdAt DateTime @default(now())
+ item Item @relation(fields:[itemId], references:[id])
+}
+
+model Sale {
+ id Int @id @default(autoincrement())
+ saleId String
+ itemId Int @unique
+ platform String
+ sellPrice Float
+ platformFee Float
+ shippingCost Float
+ netProfit Float
+ saleDate DateTime
+ createdAt DateTime @default(now())
+ item Item @relation(fields:[itemId], references:[id])
+}

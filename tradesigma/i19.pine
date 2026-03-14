@@ -1,0 +1,123 @@
+import pandas as pd
+import numpy as np
+
+class SigmaMomentumStrategy:
+    def __init__(self, params=None):
+        # ปรับจูนเพื่อจับ Momentum ในช่วงที่เป็น Strong Trend
+        self.params = params or {
+            "ema_fast": 50,
+            "ema_slow": 200,
+            "lookback": 120,
+            "adx_period": 14,
+            "adx_min": 25,          # เน้นเข้าช่วง Trend แข็งแรงเท่านั้น
+            "tp_pct": 4.5,           # ขยาย TP เพื่อครอบคลุมค่าธรรมเนียมและทำกำไรคำใหญ่
+            "sl_pct": 2.2,           # ขยาย SL เพื่อลดการโดนสะบัดกินทุน
+            "max_hold": 120          # ถือได้สูงสุดประมาณ 2.5 วันสำหรับ 30m
+        }
+
+    def generate_signals(self, df):
+        # 1. Trend Filter (EMA 50/200)
+        df["ema_f"] = df["close"].ewm(span=self.params["ema_fast"]).mean()
+        df["ema_s"] = df["close"].ewm(span=self.params["ema_slow"]).mean()
+        
+        # 2. Sigma Calculation
+        df["mu"] = df["close"].rolling(window=self.params["lookback"]).mean()
+        df["std"] = df["close"].rolling(window=self.params["lookback"]).std()
+        df["z_score"] = (df["close"] - df["mu"]) / df["std"]
+        
+        # 3. ADX Calculation (Trend Strength)
+        high = df["high"]
+        low = df["low"]
+        close_prev = df["close"].shift(1)
+        
+        tr = pd.concat([high - low, (high - close_prev).abs(), (low - close_prev).abs()], axis=1).max(axis=1)
+        atr = tr.rolling(self.params["adx_period"]).mean()
+        
+        up = high.diff()
+        dn = -low.diff()
+        pdm = np.where((up > dn) & (up > 0), up, 0)
+        ndm = np.where((dn > up) & (dn > 0), dn, 0)
+        
+        p_di = 100 * (pd.Series(pdm).rolling(self.params["adx_period"]).mean() / atr)
+        n_di = 100 * (pd.Series(ndm).rolling(self.params["adx_period"]).mean() / atr)
+        dx = 100 * (p_di - n_di).abs() / (p_di + n_di)
+        df["adx"] = dx.rolling(self.params["adx_period"]).mean()
+        
+        # 4. Entry Logic: Sigma Momentum (Z-score crossing zero in direction of trend)
+        # Long: EMA เป็นขาขึ้น + Strong ADX + Z-score ตัดขึ้นเหนือระดับ 0 (Momentum Re-entry)
+        df["long_signal"] = (df["ema_f"] > df["ema_s"]) & \
+                           (df["adx"] > self.params["adx_min"]) & \
+                           (df["z_score"] >= 0) & (df["z_score"].shift(1) < 0)
+        
+        # Short: EMA เป็นขาลง + Strong ADX + Z-score ตัดลงต่ำกว่าระดับ 0
+        df["short_signal"] = (df["ema_f"] < df["ema_s"]) & \
+                            (df["adx"] > self.params["adx_min"]) & \
+                            (df["z_score"] <= 0) & (df["z_score"].shift(1) > 0)
+        
+        return df
+
+def py(v):
+    if hasattr(v, "item"): return v.item()
+    return v
+
+if "__df__" in globals():
+    df = __df__.copy()
+    strat = SigmaMomentumStrategy()
+    df = strat.generate_signals(df)
+
+    trades = []
+    current_pos = None
+
+    for i in range(1, len(df)):
+        row = df.iloc[i]
+        
+        if current_pos:
+            entry_p = current_pos["entryPrice"]
+            side = current_pos["dir"]
+            idx_entry = current_pos["idx"]
+            
+            # คำนวณกำไร/ขาดทุน
+            if side == "LONG":
+                pnl_pct = (row["close"] - entry_p) / entry_p * 100
+                pnl_abs = row["close"] - entry_p
+            else:
+                pnl_pct = (entry_p - row["close"]) / entry_p * 100
+                pnl_abs = entry_p - row["close"]
+            
+            # Logic การออก: TP / SL / หมดอายุเวลาถือครอง
+            if pnl_pct >= strat.params["tp_pct"] or pnl_pct <= -strat.params["sl_pct"] or (i - idx_entry) >= strat.params["max_hold"]:
+                exit_p = row["close"]
+                trades.append({
+                    "dir": side,
+                    "entry": int(py(df.iloc[idx_entry]["time"])),
+                    "exit": int(py(row["time"])),
+                    "entryPrice": float(py(entry_p)),
+                    "exitPrice": float(py(exit_p)),
+                    "pnl": float(py(pnl_abs)),
+                    "pnlPct": float(py(pnl_pct))
+                })
+                current_pos = None
+
+        if not current_pos:
+            if row["long_signal"]:
+                current_pos = {"dir": "LONG", "entryPrice": row["close"], "idx": i}
+            elif row["short_signal"]:
+                current_pos = {"dir": "SHORT", "entryPrice": row["close"], "idx": i}
+
+    total_pnl = sum(t["pnl"] for t in trades)
+    wins = sum(1 for t in trades if t["pnlPct"] > 0)
+    win_rate = (wins / len(trades) * 100) if trades else 0
+
+    __backtest_result__ = {
+        "summary": {
+            "symbol": str(globals().get("__symbol__", "BTCUSDT")),
+            "timeframe": str(globals().get("__timeframe__", "30m")),
+            "trades_count": len(trades),
+            "total_pnl": float(py(total_pnl)),
+            "win_rate_pct": float(py(win_rate)),
+            "strategy_label": "Sigma Momentum Pro"
+        },
+        "trades": trades
+    }
+    _backtest_result_ = __backtest_result__
+    print(f"Executed {len(trades)} trades. Win Rate: {win_rate:.2f}%. Total PnL: {total_pnl:.2f}")
