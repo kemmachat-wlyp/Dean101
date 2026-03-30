@@ -177,6 +177,10 @@ export default async function Inventory({
                   <div className="font-medium">${item.cost.toFixed(2)}</div>
                 </div>
                 <div>
+                  <div className="text-gray-500">Target Price</div>
+                  <div className="font-medium">{item.targetPrice !== null ? `$${item.targetPrice.toFixed(2)}` : '-'}</div>
+                </div>
+                <div>
                   <div className="text-gray-500">Sell Price</div>
                   <div className="font-medium">{item.sale ? `$${item.sale.sellPrice.toFixed(2)}` : '-'}</div>
                 </div>
@@ -220,6 +224,7 @@ export default async function Inventory({
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target Price</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sell Price</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Profit</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -263,6 +268,9 @@ export default async function Inventory({
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.cost.toFixed(2)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {item.targetPrice !== null ? `$${item.targetPrice.toFixed(2)}` : '-'}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {item.sale ? `$${item.sale.sellPrice.toFixed(2)}` : '-'}
                   </td>
